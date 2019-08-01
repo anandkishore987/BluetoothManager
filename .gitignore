@@ -1,0 +1,7 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/BTManager/BTManager/bin/Debug
+/BTManager/.vs/BTManager/v16
+/BTManager/BTManager/obj/Debug

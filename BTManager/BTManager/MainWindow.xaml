@@ -1,0 +1,35 @@
+﻿<Window x:Class="BTManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BTManager"
+        mc:Ignorable="d"
+        Title="Bluetooth Manager" Height="450" Width="800" Loaded="Window_Loaded">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="361"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <ToggleButton Name = "toggleSwitch" Content = "On/OFF" VerticalAlignment="Center" Width = "108" HorizontalAlignment = "Left" Margin="20,0,0,0" Unchecked="Switch_Checked" Checked="Switch_Checked" Grid.Row="1" />
+            <TextBlock Text="Discoverable As :" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Name="discoverableName" VerticalAlignment="Center" Margin="450,0,0,0"/>
+        </Grid>
+        <Grid Grid.Row="1">
+            <TextBlock Text="Discoverable Devices"/>
+            <ListView Margin="10,31,443.6,46.8" Name="selectedDevice" SelectionMode="Single">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Device Name" Width="120" DisplayMemberBinding="{Binding DeviceName}" />
+                        <GridViewColumn Header="Type" Width="50" DisplayMemberBinding="{Binding DeviceClass}" />
+                        <GridViewColumn Header="Status" Width="150" DisplayMemberBinding="{Binding Connected}" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <Button Name="ConnectBluetooth" Width="100" Height="45" HorizontalAlignment="Right" Margin="0,20,30,0" VerticalAlignment="Top" Content="Connect" Background="AliceBlue" Click="Connect_Click"/>
+            <Button Name="DisconnectBluetooth" Width="100" Height="45" HorizontalAlignment="Right" Margin="0,90,30,0" VerticalAlignment="Top" Content="Disconnect" Background="AliceBlue" Click="Disconnect_Click"/>
+        </Grid>
+    </Grid>
+</Window>
