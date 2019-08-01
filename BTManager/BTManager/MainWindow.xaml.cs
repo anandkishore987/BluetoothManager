@@ -35,6 +35,7 @@ namespace BTManager
             handler = new EventHandler<BluetoothWin32AuthenticationEventArgs>(HandleRequests);
             auth = new BluetoothWin32Authentication(handler);
             InitBluetooth();
+
         }
 
         private void Switch_Checked(object sender, RoutedEventArgs e)
