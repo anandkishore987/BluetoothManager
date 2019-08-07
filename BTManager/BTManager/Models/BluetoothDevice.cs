@@ -28,6 +28,13 @@ namespace BTManager.Models
             }
         }
 
+        public Guid[] InstalledServices
+        {
+            get 
+            {
+                return btDeviceInfo.InstalledServices;
+            } }
+
         public string DeviceName
         {
             get

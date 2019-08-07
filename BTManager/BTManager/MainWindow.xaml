@@ -29,7 +29,8 @@
                 </ListView.View>
             </ListView>
             <Button Name="ConnectBluetooth" Width="100" Height="45" HorizontalAlignment="Right" Margin="0,20,30,0" VerticalAlignment="Top" Content="Connect" Background="AliceBlue" Click="Connect_Click"/>
-            <Button Name="DisconnectBluetooth" Width="100" Height="45" HorizontalAlignment="Right" Margin="0,90,30,0" VerticalAlignment="Top" Content="Disconnect" Background="AliceBlue" Click="Disconnect_Click"/>
+            <Button Name="DisconnectBluetooth" Width="100" Height="45" HorizontalAlignment="Right" Margin="0,90,30,0" VerticalAlignment="Top" Content="UnPair" Background="AliceBlue" Click="Disconnect_Click"/>
+            <Button Name="RemoveDevice" Width="100" Height="46" HorizontalAlignment="Right" Margin="0,154,30,0" VerticalAlignment="Top" Content="Remove" Background="AliceBlue" Click="Remove_Click"/>
         </Grid>
     </Grid>
 </Window>

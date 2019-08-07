@@ -11,6 +11,8 @@ using InTheHand.Net.Bluetooth;
 using InTheHand.Net;
 using System.Collections.Generic;
 using BTManager.Models;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace BTManager
 {
@@ -25,6 +27,53 @@ namespace BTManager
         BluetoothWin32Authentication auth;
         public const string Pin = "456123";
         List<BluetoothDevice> devices;
+
+        public int check=0;
+
+
+        [StructLayout(LayoutKind.Explicit)]
+        struct BLUETOOTH_ADDRESS
+        {
+            [FieldOffset(0)]
+            [MarshalAs(UnmanagedType.I8)]
+            public Int64 ullLong;
+            [FieldOffset(0)]
+            [MarshalAs(UnmanagedType.U1)]
+            public Byte rgBytes_0;
+            [FieldOffset(1)]
+            [MarshalAs(UnmanagedType.U1)]
+            public Byte rgBytes_1;
+            [FieldOffset(2)]
+            [MarshalAs(UnmanagedType.U1)]
+            public Byte rgBytes_2;
+            [FieldOffset(3)]
+            [MarshalAs(UnmanagedType.U1)]
+            public Byte rgBytes_3;
+            [FieldOffset(4)]
+            [MarshalAs(UnmanagedType.U1)]
+            public Byte rgBytes_4;
+            [FieldOffset(5)]
+            [MarshalAs(UnmanagedType.U1)]
+            public Byte rgBytes_5;
+        };
+
+        [DllImport("BluetoothAPIs.dll", SetLastError = true, CallingConvention = CallingConvention.StdCall)]
+        [return: MarshalAs(UnmanagedType.U4)]
+        static extern UInt32 BluetoothRemoveDevice(
+          [param: In, Out] ref BLUETOOTH_ADDRESS pAddress);
+
+        const int IOCTL_BTH_DISCONNECT_DEVICE = 0x41000c;
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        internal static extern bool DeviceIoControl(
+        IntPtr hDevice,
+        uint dwIoControlCode,
+        ref long InBuffer,
+        int nInBufferSize,
+        IntPtr OutBuffer,
+        int nOutBufferSize,
+        out int pBytesReturned,
+        IntPtr lpOverlapped);
+
         public MainWindow()
         {
             InitializeComponent();
@@ -79,11 +128,11 @@ namespace BTManager
         {
             try
             {
-                _bluetooth              = new BluetoothClient();
-                radio                   = BluetoothRadio.PrimaryRadio;
-                discoverableName.Text   = radio.Name;
-                radio.Mode              = RadioMode.Connectable;
-                var serviceClass        = BluetoothService.SerialPort;
+                _bluetooth = new BluetoothClient();
+                radio = BluetoothRadio.PrimaryRadio;
+                discoverableName.Text = radio.Name;
+                radio.Mode = RadioMode.Connectable;
+                var serviceClass = BluetoothService.SerialPort;
 
                 GetAllDevices();
             }
@@ -201,22 +250,61 @@ namespace BTManager
 
         private void Connect_Click(object sender, RoutedEventArgs e)
         {
+            _bluetooth = new BluetoothClient();
             var selectedItem = selectedDevice.SelectedItems[0] as BluetoothDevice;
-            if (selectedItem != null)
+            if (selectedItem != null && check==0)
             {
-                _bluetooth.BeginConnect(selectedItem.DeviceAddress, BluetoothService.SerialPort, new AsyncCallback(BluetoothClientConnectCallback), null);
+                //_bluetooth.BeginConnect(selectedItem.DeviceAddress, BluetoothService.SerialPort, new AsyncCallback(BluetoothClientConnectCallback), _bluetooth);
+
+                PairWithDevice(selectedItem.DeviceAddress, "");
+                //if (!selectedItem.Connected)
+                //{
+                    
+                //}
+                //BluetoothEndPoint ep = new BluetoothEndPoint(selectedItem.DeviceAddress, BluetoothService.SerialPort);
+                //_bluetooth.Connect(ep);
+            }
+            else if (check == 1)
+            {
+                PairWithDevice(selectedItem.DeviceAddress, "");
+                var guidabc = selectedItem.InstalledServices[0];
+                _bluetooth.BeginConnect(selectedItem.DeviceAddress, guidabc, this.BluetoothClientConnectCallback, _bluetooth);
+                check = 0;
             }
             else
             {
                 MessageBox.Show("No device is selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            
         }
-
+        
         private void Disconnect_Click(object sender, RoutedEventArgs e)
         {
             var selectedItem = selectedDevice.SelectedItems[0] as BluetoothDevice;
             if (selectedItem != null)
             {
+
+
+
+                //RemovePairedDevice(selectedItem.DeviceAddress);
+
+
+
+                ParameterizedThreadStart pmt = new ParameterizedThreadStart(offconnection);
+                Thread t1 = new Thread(pmt);
+                t1.Start(selectedItem.DeviceAddress);
+                //_bluetooth.Authenticate = false;
+                _bluetooth.Dispose();
+                check = 1;
+                t1.Join();
+                PairWithDevice(selectedItem.DeviceAddress, "");
+                //Unpair(selectedItem.DeviceAddress.ToInt64());
+
+
+
+                //_bluetooth.Close();
+
+
             }
             else
             {
@@ -224,7 +312,30 @@ namespace BTManager
             }
         }
 
-        private void BluetoothClientConnectCallback(IAsyncResult ar)
+
+
+        UInt32 Unpair(Int64 Address)
+        {
+            BLUETOOTH_ADDRESS Addr = new BLUETOOTH_ADDRESS();
+            Addr.ullLong = Address;
+            return BluetoothRemoveDevice(ref Addr);
+        }
+        private void offconnection(object item)
+        {
+
+            var r = BluetoothRadio.PrimaryRadio;
+            var h = r.Handle;
+            long btAddr = BluetoothAddress.Parse(item.ToString()).ToInt64();
+            int bytesReturned = 0;
+            var success = DeviceIoControl(h,
+            IOCTL_BTH_DISCONNECT_DEVICE,
+            ref btAddr, 8,
+            IntPtr.Zero, 0, out bytesReturned, IntPtr.Zero);
+
+
+            }
+
+            private void BluetoothClientConnectCallback(IAsyncResult ar)
         {
             if (ar.IsCompleted)
             {
@@ -233,6 +344,13 @@ namespace BTManager
                 //    GetAllDevices();
                 //}));
             }
+        }
+
+        private void Remove_Click(object sender, RoutedEventArgs e)
+        {
+            check = 0;
+            var selectedItem = selectedDevice.SelectedItems[0] as BluetoothDevice;
+            RemovePairedDevice(selectedItem.DeviceAddress);
         }
     }
 }
